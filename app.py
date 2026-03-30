@@ -225,7 +225,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# App Header
 st.markdown("""
 <div class="app-header">
     <h1>🇪🇬 EGX Stocks</h1>
@@ -281,15 +280,36 @@ def get_trend(data):
 # Main App
 st.title("Egyptian Stock Market Analyzer")
 
-# Sidebar
-st.sidebar.title("Navigation")
-page = st.sidebar.selectbox("Choose a feature:", [
-    "Live Prices",
-    "Update Prices",
-    "Stock Analysis", 
-    "Buy/Sell Advice",
-    "Learn Investing"
-])
+# Mobile-Friendly Top Navigation (replaces sidebar)
+st.markdown("### 📌 Navigation")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    if st.button("📊 Prices", use_container_width=True):
+        st.session_state.page = "Live Prices"
+    if st.button("💡 Advice", use_container_width=True):
+        st.session_state.page = "Buy/Sell Advice"
+
+with col2:
+    if st.button("📈 Analysis", use_container_width=True):
+        st.session_state.page = "Stock Analysis"
+    if st.button("📚 Learn", use_container_width=True):
+        st.session_state.page = "Learn Investing"
+
+with col3:
+    if st.button("🔄 Update", use_container_width=True):
+        st.session_state.page = "Update Prices"
+
+# Initialize session state
+if 'page' not in st.session_state:
+    st.session_state.page = "Live Prices"
+
+# Get current page
+page = st.session_state.page
+
+st.markdown("---")
+st.markdown(f"**Current:** {page}")
 
 # Show last update in sidebar
 last_update = get_last_update()
