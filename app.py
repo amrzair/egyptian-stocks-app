@@ -8,7 +8,230 @@ from stocks_data import EGYPTIAN_STOCKS, get_stock_list, get_all_sectors, get_st
 from price_manager import load_prices, save_prices, update_stock_price, get_stock_price, get_all_prices, get_last_update
 from datetime import datetime
 
-st.set_page_config(page_title="Egyptian Stocks App", page_icon="📈", layout="wide")
+import streamlit as st
+import yfinance as yf
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from stocks_data import EGYPTIAN_STOCKS, get_stock_list, get_all_sectors, get_stock_by_sector
+from price_manager import load_prices, save_prices, update_stock_price, get_stock_price, get_all_prices, get_last_update
+from datetime import datetime
+
+# Page config
+st.set_page_config(
+    page_title="EGX Stocks",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# Enhanced Mobile PWA Styles
+st.markdown("""
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EGX Stocks">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<style>
+    /* Hide Streamlit elements for app feel */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stDeployButton {display: none;}
+    
+    /* Full screen app feel */
+    .main .block-container {
+        padding-top: 20px;
+        padding-bottom: 20px;
+        max-width: 100%;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        
+        h1 {
+            font-size: 22px !important;
+        }
+        
+        h2 {
+            font-size: 18px !important;
+        }
+        
+        h3 {
+            font-size: 16px !important;
+        }
+        
+        .stSelectbox, .stMultiSelect {
+            width: 100% !important;
+        }
+        
+        .stButton button {
+            width: 100% !important;
+            padding: 15px !important;
+            font-size: 16px !important;
+            border-radius: 12px !important;
+            font-weight: bold !important;
+        }
+        
+        .stDataFrame {
+            font-size: 12px !important;
+        }
+    }
+    
+    /* App Header */
+    .app-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%);
+        padding: 25px 15px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    
+    .app-header h1 {
+        color: white;
+        margin: 0;
+        font-size: 28px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .app-header p {
+        color: #e0e0e0;
+        margin: 5px 0 0 0;
+        font-size: 14px;
+    }
+    
+    /* Navigation Cards */
+    .nav-card {
+        background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        margin: 10px 0;
+        border: 1px solid #333;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .nav-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    }
+    
+    .nav-card h3 {
+        color: white;
+        margin: 10px 0 5px 0;
+    }
+    
+    .nav-card p {
+        color: #888;
+        margin: 0;
+        font-size: 12px;
+    }
+    
+    /* Stock Cards */
+    .stock-card-green {
+        background: linear-gradient(145deg, #1b4332, #081c15);
+        padding: 15px;
+        border-radius: 12px;
+        border-left: 4px solid #40c057;
+        margin: 10px 0;
+    }
+    
+    .stock-card-red {
+        background: linear-gradient(145deg, #4a1a1a, #1a0505);
+        padding: 15px;
+        border-radius: 12px;
+        border-left: 4px solid #e03131;
+        margin: 10px 0;
+    }
+    
+    /* Better Buttons */
+    .stButton button {
+        background: linear-gradient(145deg, #2a5298, #1e3c72);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    
+    .stButton button:hover {
+        background: linear-gradient(145deg, #3a6bc5, #2a5298);
+        transform: translateY(-2px);
+    }
+    
+    /* Metrics */
+    [data-testid="stMetricValue"] {
+        font-size: 24px !important;
+        font-weight: bold !important;
+    }
+    
+    /* Recommendation Box */
+    .rec-box {
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        margin: 20px 0;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+    
+    .rec-buy {
+        background: linear-gradient(145deg, #40c057, #2b8a3e);
+    }
+    
+    .rec-sell {
+        background: linear-gradient(145deg, #e03131, #c92a2a);
+    }
+    
+    .rec-hold {
+        background: linear-gradient(145deg, #fab005, #f59f00);
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 10px;
+        padding: 10px 20px;
+    }
+    
+    /* Expanders */
+    .streamlit-expanderHeader {
+        font-size: 16px !important;
+        font-weight: bold !important;
+    }
+    
+    /* Bottom Navigation */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #1a1a1a;
+        padding: 10px;
+        display: flex;
+        justify-content: space-around;
+        border-top: 1px solid #333;
+        z-index: 999;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# App Header
+st.markdown("""
+<div class="app-header">
+    <h1>🇪🇬 EGX Stocks</h1>
+    <p>Your Personal Egyptian Stock Analyzer</p>
+</div>
+""", unsafe_allow_html=True)
 
 # Helper Functions for Technical Analysis
 def calculate_sma(data, window):
