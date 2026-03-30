@@ -393,6 +393,7 @@ elif page == "📚 Learn Investing":
         "🇪🇬 EGX Guide"
     ])
     
+    # ============== STOCK MARKET BASICS ==============
     if topic == "📊 Stock Market Basics":
         st.markdown("""
         ### What is a Stock?
@@ -401,101 +402,605 @@ elif page == "📚 Learn Investing":
         ### How to Make Money:
         - **Capital Gains**: Buy low, sell high
         - **Dividends**: Company shares profits
+        """)
         
+        # Sample Price Growth Chart
+        st.subheader("📈 Example: Capital Gains")
+        
+        sample_dates = pd.date_range(start='2024-01-01', periods=100, freq='D')
+        sample_prices = [50]
+        for i in range(99):
+            change = np.random.randn() * 0.5 + 0.1
+            sample_prices.append(sample_prices[-1] + change)
+        
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=sample_dates,
+            y=sample_prices,
+            mode='lines',
+            name='Stock Price',
+            line=dict(color='#00ff88', width=2)
+        ))
+        fig.add_annotation(x=sample_dates[20], y=sample_prices[20],
+            text="Buy Here: EGP 52", showarrow=True, arrowhead=1, bgcolor="green")
+        fig.add_annotation(x=sample_dates[80], y=sample_prices[80],
+            text="Sell Here: EGP 68", showarrow=True, arrowhead=1, bgcolor="red")
+        fig.update_layout(
+            title="Example: Buy Low, Sell High",
+            template="plotly_dark",
+            height=350,
+            margin=dict(l=10, r=10, t=40, b=10)
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        
+        st.success("💡 Profit = EGP 68 - EGP 52 = **EGP 16 per share**")
+        
+        st.markdown("""
         ### Key Terms:
         - 🐂 **Bull Market**: Prices rising
         - 🐻 **Bear Market**: Prices falling
         - **Volume**: Shares traded
         - **Market Cap**: Company total value
         """)
+        
+        # Bull vs Bear Market Chart
+        st.subheader("🐂 Bull vs 🐻 Bear Market")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            bull_prices = [50 + i*0.3 + np.random.randn()*0.5 for i in range(50)]
+            fig_bull = go.Figure()
+            fig_bull.add_trace(go.Scatter(y=bull_prices, mode='lines', line=dict(color='green', width=3)))
+            fig_bull.update_layout(title="🐂 Bull Market (Uptrend)", template="plotly_dark", height=200, 
+                                   margin=dict(l=10, r=10, t=40, b=10), showlegend=False)
+            st.plotly_chart(fig_bull, use_container_width=True)
+        
+        with col2:
+            bear_prices = [70 - i*0.3 + np.random.randn()*0.5 for i in range(50)]
+            fig_bear = go.Figure()
+            fig_bear.add_trace(go.Scatter(y=bear_prices, mode='lines', line=dict(color='red', width=3)))
+            fig_bear.update_layout(title="🐻 Bear Market (Downtrend)", template="plotly_dark", height=200,
+                                   margin=dict(l=10, r=10, t=40, b=10), showlegend=False)
+            st.plotly_chart(fig_bear, use_container_width=True)
     
+    # ============== TECHNICAL INDICATORS ==============
     elif topic == "📈 Technical Indicators":
         st.markdown("""
-        ### SMA (Simple Moving Average)
-        Average price over a period.
-        - Price > SMA = 🟢 Bullish
-        - Price < SMA = 🔴 Bearish
+        ### Technical indicators help predict future price movements
+        """)
         
-        ### RSI (Relative Strength Index)
-        Measures momentum (0-100).
-        - RSI > 70 = Overbought (Sell signal)
-        - RSI < 30 = Oversold (Buy signal)
+        # Generate sample data
+        np.random.seed(42)
+        dates = pd.date_range(start='2024-01-01', periods=100, freq='D')
+        prices = [50]
+        for i in range(99):
+            prices.append(prices[-1] + np.random.randn() * 1.5)
+        prices = pd.Series(prices)
         
-        ### MACD
-        Shows trend momentum.
-        - MACD > Signal = 🟢 Buy
-        - MACD < Signal = 🔴 Sell
+        # SMA Section
+        st.subheader("📏 SMA (Simple Moving Average)")
+        st.markdown("""
+        SMA smooths price data to show the trend direction.
+        - **SMA 20**: Short-term trend
+        - **SMA 50**: Medium-term trend
+        """)
+        
+        sma20 = prices.rolling(20).mean()
+        sma50 = prices.rolling(50).mean()
+        
+        fig_sma = go.Figure()
+        fig_sma.add_trace(go.Scatter(x=dates, y=prices, name="Price", line=dict(color='white', width=1)))
+        fig_sma.add_trace(go.Scatter(x=dates, y=sma20, name="SMA 20", line=dict(color='orange', width=2)))
+        fig_sma.add_trace(go.Scatter(x=dates, y=sma50, name="SMA 50", line=dict(color='blue', width=2)))
+        fig_sma.update_layout(
+            title="Price with SMA 20 & SMA 50",
+            template="plotly_dark",
+            height=350,
+            margin=dict(l=10, r=10, t=40, b=10),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02)
+        )
+        st.plotly_chart(fig_sma, use_container_width=True)
+        
+        st.markdown("""
+        **How to Read:**
+        | Signal | Meaning |
+        |--------|---------|
+        | Price > SMA | 🟢 Bullish (Uptrend) |
+        | Price < SMA | 🔴 Bearish (Downtrend) |
+        | SMA 20 crosses above SMA 50 | 🟢 Golden Cross (Buy!) |
+        | SMA 20 crosses below SMA 50 | 🔴 Death Cross (Sell!) |
+        """)
+        
+        # RSI Section
+        st.subheader("💪 RSI (Relative Strength Index)")
+        st.markdown("""
+        RSI measures if a stock is **overbought** or **oversold** (0-100 scale).
+        """)
+        
+        # Generate RSI-like data
+        rsi_values = [50]
+        for i in range(99):
+            change = np.random.randn() * 5
+            new_val = rsi_values[-1] + change
+            new_val = max(10, min(90, new_val))  # Keep between 10-90
+            rsi_values.append(new_val)
+        
+        fig_rsi = go.Figure()
+        fig_rsi.add_trace(go.Scatter(x=dates, y=rsi_values, name="RSI", line=dict(color='purple', width=2)))
+        fig_rsi.add_hline(y=70, line_dash="dash", line_color="red", annotation_text="Overbought (70)")
+        fig_rsi.add_hline(y=30, line_dash="dash", line_color="green", annotation_text="Oversold (30)")
+        fig_rsi.add_hrect(y0=70, y1=100, fillcolor="red", opacity=0.1)
+        fig_rsi.add_hrect(y0=0, y1=30, fillcolor="green", opacity=0.1)
+        fig_rsi.update_layout(
+            title="RSI Indicator Example",
+            template="plotly_dark",
+            height=300,
+            margin=dict(l=10, r=10, t=40, b=10),
+            yaxis=dict(range=[0, 100])
+        )
+        st.plotly_chart(fig_rsi, use_container_width=True)
+        
+        st.markdown("""
+        **How to Read:**
+        | RSI Value | Meaning | Action |
+        |-----------|---------|--------|
+        | > 70 | 🔴 Overbought | Consider Selling |
+        | < 30 | 🟢 Oversold | Consider Buying |
+        | 30-70 | 🟡 Neutral | Wait |
+        """)
+        
+        # MACD Section
+        st.subheader("📊 MACD (Moving Average Convergence Divergence)")
+        st.markdown("""
+        MACD shows momentum and trend changes.
+        """)
+        
+        ema12 = prices.ewm(span=12).mean()
+        ema26 = prices.ewm(span=26).mean()
+        macd_line = ema12 - ema26
+        signal_line = macd_line.ewm(span=9).mean()
+        histogram = macd_line - signal_line
+        
+        fig_macd = go.Figure()
+        fig_macd.add_trace(go.Scatter(x=dates, y=macd_line, name="MACD", line=dict(color='blue', width=2)))
+        fig_macd.add_trace(go.Scatter(x=dates, y=signal_line, name="Signal", line=dict(color='orange', width=2)))
+        fig_macd.add_trace(go.Bar(x=dates, y=histogram, name="Histogram",
+                                  marker_color=['green' if v >= 0 else 'red' for v in histogram]))
+        fig_macd.update_layout(
+            title="MACD Indicator Example",
+            template="plotly_dark",
+            height=300,
+            margin=dict(l=10, r=10, t=40, b=10),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02)
+        )
+        st.plotly_chart(fig_macd, use_container_width=True)
+        
+        st.markdown("""
+        **How to Read:**
+        | Signal | Meaning |
+        |--------|---------|
+        | MACD crosses above Signal | 🟢 Buy Signal |
+        | MACD crosses below Signal | 🔴 Sell Signal |
+        | Green Histogram | 🟢 Bullish Momentum |
+        | Red Histogram | 🔴 Bearish Momentum |
         """)
     
+    # ============== CANDLESTICK PATTERNS ==============
     elif topic == "🕯️ Candlestick Patterns":
         st.markdown("""
-        ### Reading Candlesticks
-        - 🟢 Green = Price went UP
-        - 🔴 Red = Price went DOWN
-        
-        ### Bullish Patterns (Buy):
-        - **Hammer**: Reversal after downtrend
-        - **Morning Star**: 3-candle reversal
-        
-        ### Bearish Patterns (Sell):
-        - **Shooting Star**: Reversal after uptrend
-        - **Evening Star**: 3-candle reversal
+        ### Understanding Candlesticks
+        Each candle shows 4 prices: **Open, High, Low, Close**
         """)
+        
+        # Basic Candlestick Explanation
+        st.subheader("📖 Anatomy of a Candlestick")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Bullish Candle
+            fig_bull_candle = go.Figure()
+            fig_bull_candle.add_trace(go.Candlestick(
+                x=['Bullish'],
+                open=[50], high=[58], low=[48], close=[56],
+                increasing_line_color='green',
+                increasing_fillcolor='green'
+            ))
+            fig_bull_candle.update_layout(
+                title="🟢 Bullish Candle",
+                template="plotly_dark",
+                height=300,
+                showlegend=False,
+                xaxis=dict(visible=False),
+                annotations=[
+                    dict(x='Bullish', y=58, text="High", showarrow=True, arrowhead=1, yshift=10),
+                    dict(x='Bullish', y=48, text="Low", showarrow=True, arrowhead=1, yshift=-10),
+                    dict(x='Bullish', y=50, text="Open", showarrow=True, arrowhead=1, xshift=-40),
+                    dict(x='Bullish', y=56, text="Close", showarrow=True, arrowhead=1, xshift=40),
+                ]
+            )
+            st.plotly_chart(fig_bull_candle, use_container_width=True)
+            st.markdown("**Close > Open = Price went UP**")
+        
+        with col2:
+            # Bearish Candle
+            fig_bear_candle = go.Figure()
+            fig_bear_candle.add_trace(go.Candlestick(
+                x=['Bearish'],
+                open=[56], high=[58], low=[48], close=[50],
+                decreasing_line_color='red',
+                decreasing_fillcolor='red'
+            ))
+            fig_bear_candle.update_layout(
+                title="🔴 Bearish Candle",
+                template="plotly_dark",
+                height=300,
+                showlegend=False,
+                xaxis=dict(visible=False),
+                annotations=[
+                    dict(x='Bearish', y=58, text="High", showarrow=True, arrowhead=1, yshift=10),
+                    dict(x='Bearish', y=48, text="Low", showarrow=True, arrowhead=1, yshift=-10),
+                    dict(x='Bearish', y=56, text="Open", showarrow=True, arrowhead=1, xshift=-40),
+                    dict(x='Bearish', y=50, text="Close", showarrow=True, arrowhead=1, xshift=40),
+                ]
+            )
+            st.plotly_chart(fig_bear_candle, use_container_width=True)
+            st.markdown("**Close < Open = Price went DOWN**")
+        
+        # Bullish Patterns
+        st.subheader("🟢 Bullish Patterns (Buy Signals)")
+        
+        # Hammer Pattern
+        st.markdown("#### 🔨 Hammer")
+        st.markdown("Appears after a downtrend. Long lower shadow shows buyers pushing price up.")
+        
+        fig_hammer = go.Figure()
+        hammer_data = [
+            [52, 54, 50, 51],  # Downtrend
+            [51, 52, 48, 49],  # Downtrend
+            [49, 50, 45, 48],  # Downtrend
+            [48, 52, 42, 51],  # Hammer!
+            [51, 55, 50, 54],  # Recovery
+        ]
+        dates_h = ['Day 1', 'Day 2', 'Day 3', 'Hammer', 'Day 5']
+        fig_hammer.add_trace(go.Candlestick(
+            x=dates_h,
+            open=[d[0] for d in hammer_data],
+            high=[d[1] for d in hammer_data],
+            low=[d[2] for d in hammer_data],
+            close=[d[3] for d in hammer_data]
+        ))
+        fig_hammer.add_annotation(x='Hammer', y=42, text="🔨 Hammer Pattern", showarrow=True, arrowhead=1, yshift=-20, bgcolor="green")
+        fig_hammer.update_layout(template="plotly_dark", height=300, margin=dict(l=10, r=10, t=20, b=10), showlegend=False)
+        st.plotly_chart(fig_hammer, use_container_width=True)
+        
+        # Bullish Engulfing
+        st.markdown("#### 📈 Bullish Engulfing")
+        st.markdown("Green candle completely covers the previous red candle.")
+        
+        fig_engulf = go.Figure()
+        engulf_data = [
+            [52, 53, 50, 51],
+            [51, 52, 49, 50],
+            [50, 51, 48, 49],  # Red
+            [48, 54, 47, 53],  # Big Green engulfs
+            [53, 56, 52, 55],
+        ]
+        dates_e = ['Day 1', 'Day 2', 'Red', 'Engulfing', 'Day 5']
+        fig_engulf.add_trace(go.Candlestick(
+            x=dates_e,
+            open=[d[0] for d in engulf_data],
+            high=[d[1] for d in engulf_data],
+            low=[d[2] for d in engulf_data],
+            close=[d[3] for d in engulf_data]
+        ))
+        fig_engulf.add_annotation(x='Engulfing', y=54, text="📈 Bullish Engulfing", showarrow=True, arrowhead=1, yshift=15, bgcolor="green")
+        fig_engulf.update_layout(template="plotly_dark", height=300, margin=dict(l=10, r=10, t=20, b=10), showlegend=False)
+        st.plotly_chart(fig_engulf, use_container_width=True)
+        
+        # Bearish Patterns
+        st.subheader("🔴 Bearish Patterns (Sell Signals)")
+        
+        # Shooting Star
+        st.markdown("#### 🌠 Shooting Star")
+        st.markdown("Appears after an uptrend. Long upper shadow shows sellers pushing price down.")
+        
+        fig_star = go.Figure()
+        star_data = [
+            [48, 50, 47, 49],  # Uptrend
+            [49, 52, 48, 51],  # Uptrend
+            [51, 54, 50, 53],  # Uptrend
+            [53, 60, 52, 54],  # Shooting Star!
+            [54, 55, 50, 51],  # Decline
+        ]
+        dates_s = ['Day 1', 'Day 2', 'Day 3', 'Star', 'Day 5']
+        fig_star.add_trace(go.Candlestick(
+            x=dates_s,
+            open=[d[0] for d in star_data],
+            high=[d[1] for d in star_data],
+            low=[d[2] for d in star_data],
+            close=[d[3] for d in star_data]
+        ))
+        fig_star.add_annotation(x='Star', y=60, text="🌠 Shooting Star", showarrow=True, arrowhead=1, yshift=15, bgcolor="red")
+        fig_star.update_layout(template="plotly_dark", height=300, margin=dict(l=10, r=10, t=20, b=10), showlegend=False)
+        st.plotly_chart(fig_star, use_container_width=True)
+        
+        # Bearish Engulfing
+        st.markdown("#### 📉 Bearish Engulfing")
+        st.markdown("Red candle completely covers the previous green candle.")
+        
+        fig_bear_engulf = go.Figure()
+        bear_engulf_data = [
+            [48, 50, 47, 49],
+            [49, 52, 48, 51],
+            [51, 53, 50, 52],  # Green
+            [53, 54, 47, 48],  # Big Red engulfs
+            [48, 49, 45, 46],
+        ]
+        dates_be = ['Day 1', 'Day 2', 'Green', 'Engulfing', 'Day 5']
+        fig_bear_engulf.add_trace(go.Candlestick(
+            x=dates_be,
+            open=[d[0] for d in bear_engulf_data],
+            high=[d[1] for d in bear_engulf_data],
+            low=[d[2] for d in bear_engulf_data],
+            close=[d[3] for d in bear_engulf_data]
+        ))
+        fig_bear_engulf.add_annotation(x='Engulfing', y=47, text="📉 Bearish Engulfing", showarrow=True, arrowhead=1, yshift=-20, bgcolor="red")
+        fig_bear_engulf.update_layout(template="plotly_dark", height=300, margin=dict(l=10, r=10, t=20, b=10), showlegend=False)
+        st.plotly_chart(fig_bear_engulf, use_container_width=True)
+        
+        # Doji
+        st.subheader("🟡 Neutral Pattern: Doji")
+        st.markdown("Open and Close are almost equal. Shows market indecision.")
+        
+        fig_doji = go.Figure()
+        doji_data = [
+            [50, 52, 48, 51],
+            [51, 53, 49, 52],
+            [52, 55, 49, 52.1],  # Doji
+            [52, 54, 50, 53],
+            [53, 56, 52, 55],
+        ]
+        dates_d = ['Day 1', 'Day 2', 'Doji', 'Day 4', 'Day 5']
+        fig_doji.add_trace(go.Candlestick(
+            x=dates_d,
+            open=[d[0] for d in doji_data],
+            high=[d[1] for d in doji_data],
+            low=[d[2] for d in doji_data],
+            close=[d[3] for d in doji_data]
+        ))
+        fig_doji.add_annotation(x='Doji', y=55, text="✚ Doji (Indecision)", showarrow=True, arrowhead=1, yshift=15, bgcolor="yellow")
+        fig_doji.update_layout(template="plotly_dark", height=300, margin=dict(l=10, r=10, t=20, b=10), showlegend=False)
+        st.plotly_chart(fig_doji, use_container_width=True)
     
+    # ============== FUNDAMENTAL ANALYSIS ==============
     elif topic == "💰 Fundamental Analysis":
         st.markdown("""
-        ### P/E Ratio
-        ```
-        P/E = Stock Price ÷ Earnings Per Share
-        ```
-        - Low P/E (<15) = Possibly undervalued
-        - High P/E (>25) = Possibly overvalued
-        
-        ### EPS (Earnings Per Share)
-        Company profit per share.
-        - Growing EPS = Good sign ✅
-        
-        ### Dividend Yield
-        ```
-        Yield = (Annual Dividend ÷ Price) × 100
-        ```
+        ### Fundamental Analysis evaluates a company's true value
         """)
+        
+        # P/E Ratio
+        st.subheader("📊 P/E Ratio (Price to Earnings)")
+        st.markdown("""
+        **Formula:** P/E = Stock Price ÷ Earnings Per Share
+        """)
+        
+        # P/E Comparison Chart
+        companies = ['Company A', 'Company B', 'Company C', 'Company D']
+        pe_values = [10, 18, 25, 45]
+        colors = ['green', 'lightgreen', 'orange', 'red']
+        
+        fig_pe = go.Figure()
+        fig_pe.add_trace(go.Bar(
+            x=companies,
+            y=pe_values,
+            marker_color=colors,
+            text=pe_values,
+            textposition='auto'
+        ))
+        fig_pe.add_hline(y=15, line_dash="dash", line_color="white", annotation_text="Fair Value (15)")
+        fig_pe.update_layout(
+            title="P/E Ratio Comparison",
+            template="plotly_dark",
+            height=300,
+            margin=dict(l=10, r=10, t=40, b=10)
+        )
+        st.plotly_chart(fig_pe, use_container_width=True)
+        
+        st.markdown("""
+        | P/E Value | Meaning |
+        |-----------|---------|
+        | < 15 | 🟢 Possibly undervalued |
+        | 15-25 | 🟡 Fairly valued |
+        | > 25 | 🔴 Possibly overvalued |
+        """)
+        
+        # EPS Growth
+        st.subheader("📈 EPS Growth (Earnings Per Share)")
+        
+        years = ['2020', '2021', '2022', '2023', '2024']
+        eps_good = [2.0, 2.5, 3.0, 3.8, 4.5]
+        eps_bad = [3.0, 2.8, 2.5, 2.0, 1.5]
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            fig_eps_good = go.Figure()
+            fig_eps_good.add_trace(go.Bar(x=years, y=eps_good, marker_color='green', text=eps_good, textposition='auto'))
+            fig_eps_good.update_layout(title="✅ Good: Growing EPS", template="plotly_dark", height=250, margin=dict(l=10, r=10, t=40, b=10))
+            st.plotly_chart(fig_eps_good, use_container_width=True)
+        
+        with col2:
+            fig_eps_bad = go.Figure()
+            fig_eps_bad.add_trace(go.Bar(x=years, y=eps_bad, marker_color='red', text=eps_bad, textposition='auto'))
+            fig_eps_bad.update_layout(title="❌ Bad: Declining EPS", template="plotly_dark", height=250, margin=dict(l=10, r=10, t=40, b=10))
+            st.plotly_chart(fig_eps_bad, use_container_width=True)
+        
+        # Dividend Yield
+        st.subheader("💵 Dividend Yield")
+        st.markdown("**Formula:** Yield = (Annual Dividend ÷ Price) × 100")
+        
+        div_companies = ['Bank A', 'Bank B', 'Tech Co', 'Real Estate', 'Startup']
+        div_yields = [5.2, 4.8, 1.5, 3.2, 0]
+        
+        fig_div = go.Figure()
+        fig_div.add_trace(go.Bar(
+            x=div_companies,
+            y=div_yields,
+            marker_color=['green' if y > 3 else 'orange' if y > 0 else 'red' for y in div_yields],
+            text=[f"{y}%" for y in div_yields],
+            textposition='auto'
+        ))
+        fig_div.update_layout(
+            title="Dividend Yield Comparison",
+            template="plotly_dark",
+            height=300,
+            margin=dict(l=10, r=10, t=40, b=10)
+        )
+        st.plotly_chart(fig_div, use_container_width=True)
+        
+        st.info("💡 Egyptian banks often have good dividend yields (3-6%)")
     
+    # ============== RISK MANAGEMENT ==============
     elif topic == "🛡️ Risk Management":
         st.markdown("""
-        ### Golden Rules
-        1. Never risk more than 1-2% per trade
-        2. Always use stop loss
-        3. Diversify your portfolio
-        
-        ### Stop Loss Example
-        - Buy at EGP 100
-        - Stop loss at EGP 90 (10%)
-        - Maximum loss = 10%
-        
-        ### Portfolio Allocation
-        - 60% Blue chips (safe)
-        - 30% Growth stocks
-        - 10% Speculative
+        ### Protect Your Capital!
         """)
+        
+        # Stop Loss Example
+        st.subheader("🛑 Stop Loss Example")
+        
+        dates_sl = pd.date_range(start='2024-01-01', periods=30, freq='D')
+        prices_sl = [100, 102, 101, 103, 105, 104, 103, 101, 99, 97, 95, 93, 91, 89, 88, 87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73]
+        
+        fig_sl = go.Figure()
+        fig_sl.add_trace(go.Scatter(x=dates_sl, y=prices_sl, mode='lines', name='Price', line=dict(color='white', width=2)))
+        fig_sl.add_hline(y=100, line_dash="dash", line_color="green", annotation_text="Buy: EGP 100")
+        fig_sl.add_hline(y=90, line_dash="dash", line_color="red", annotation_text="Stop Loss: EGP 90 (-10%)")
+        fig_sl.add_annotation(x=dates_sl[10], y=95, text="❌ Stop Loss Triggered!", showarrow=True, arrowhead=1, bgcolor="red")
+        fig_sl.update_layout(
+            title="Stop Loss Protects You!",
+            template="plotly_dark",
+            height=350,
+            margin=dict(l=10, r=10, t=40, b=10)
+        )
+        st.plotly_chart(fig_sl, use_container_width=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.error("**Without Stop Loss:**\nLoss = EGP 100 → EGP 73 = **-27%**")
+        with col2:
+            st.success("**With Stop Loss:**\nLoss = EGP 100 → EGP 90 = **-10%**")
+        
+        # Position Sizing
+        st.subheader("📊 Position Sizing (1% Rule)")
+        st.markdown("Never risk more than **1-2%** of your capital per trade")
+        
+        capital = st.slider("Your Capital (EGP):", 10000, 500000, 100000, 10000)
+        risk_pct = st.slider("Risk per trade (%):", 1, 5, 2)
+        
+        risk_amount = capital * (risk_pct / 100)
+        
+        st.markdown(f"""
+        | Item | Value |
+        |------|-------|
+        | Total Capital | EGP {capital:,} |
+        | Risk Percentage | {risk_pct}% |
+        | **Max Loss Per Trade** | **EGP {risk_amount:,.0f}** |
+        """)
+        
+        # Portfolio Diversification
+        st.subheader("🥧 Portfolio Diversification")
+        
+        labels = ['Banks (40%)', 'Real Estate (20%)', 'Healthcare (15%)', 'Tech (15%)', 'Cash (10%)']
+        values = [40, 20, 15, 15, 10]
+        colors_pie = ['#2E86AB', '#A23B72', '#F18F01', '#C73E1D', '#3B1F2B']
+        
+        fig_pie = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.4, marker_colors=colors_pie)])
+        fig_pie.update_layout(
+            title="Sample Diversified Portfolio",
+            template="plotly_dark",
+            height=350,
+            margin=dict(l=10, r=10, t=40, b=10)
+        )
+        st.plotly_chart(fig_pie, use_container_width=True)
+        
+        st.success("💡 Don't put all eggs in one basket!")
     
+    # ============== EGX GUIDE ==============
     elif topic == "🇪🇬 EGX Guide":
         st.markdown("""
-        ### Trading Hours
-        - **Days**: Sunday - Thursday
-        - **Time**: 10:00 AM - 2:30 PM
-        
-        ### Main Indices
-        - **EGX 30**: Top 30 companies
-        - **EGX 70**: Next 70 companies
-        - **EGX 100**: Combined index
-        
-        ### How to Start
-        1. Choose a broker (EFG Hermes, CI Capital)
-        2. Open account with National ID
-        3. Fund your account
-        4. Start trading!
+        ### Egyptian Exchange (EGX)
+        One of the oldest exchanges in the Middle East (Est. 1883)
         """)
+        
+        st.subheader("⏰ Trading Hours")
+        st.markdown("""
+        | Day | Status |
+        |-----|--------|
+        | Sunday | ✅ Open |
+        | Monday | ✅ Open |
+        | Tuesday | ✅ Open |
+        | Wednesday | ✅ Open |
+        | Thursday | ✅ Open |
+        | Friday | ❌ Closed |
+        | Saturday | ❌ Closed |
+        
+        **Trading Time:** 10:00 AM - 2:30 PM
+        """)
+        
+        # EGX Indices
+        st.subheader("📊 Main Indices Performance (Sample)")
+        
+        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+        egx30 = [25000, 25500, 26200, 25800, 27000, 28000]
+        egx70 = [3000, 3100, 3250, 3180, 3300, 3450]
+        
+        fig_idx = go.Figure()
+        fig_idx.add_trace(go.Scatter(x=months, y=egx30, name="EGX 30", line=dict(color='#00ff88', width=3)))
+        fig_idx.update_layout(
+            title="EGX 30 Index",
+            template="plotly_dark",
+            height=300,
+            margin=dict(l=10, r=10, t=40, b=10)
+        )
+        st.plotly_chart(fig_idx, use_container_width=True)
+        
+        # Sectors
+        st.subheader("🏭 EGX Sectors")
+        
+        sectors = ['Banks', 'Real Estate', 'Food & Bev', 'Healthcare', 'FinTech', 'Construction']
+        weights = [35, 20, 15, 12, 10, 8]
+        
+        fig_sectors = go.Figure()
+        fig_sectors.add_trace(go.Bar(
+            x=sectors,
+            y=weights,
+            marker_color=['#1e88e5', '#43a047', '#fb8c00', '#e53935', '#8e24aa', '#6d4c41'],
+            text=[f"{w}%" for w in weights],
+            textposition='auto'
+        ))
+        fig_sectors.update_layout(
+            title="EGX Sector Weights",
+            template="plotly_dark",
+            height=300,
+            margin=dict(l=10, r=10, t=40, b=10)
+        )
+        st.plotly_chart(fig_sectors, use_container_width=True)
+        
+        st.subheader("🏦 Popular Brokers")
+        st.markdown("""
+        | Broker | Type |
+        |--------|------|
+        | EFG Hermes | Full Service |
+        | CI Capital | Full Service |
+        | Beltone | Full Service |
+        | Arabeya Online | Online |
+        | Mubasher Trade | Online |
+        """)
+        
+        st.info("💡 Start with a reputable broker and small amounts!")
 
 # Footer
 st.markdown("---")
